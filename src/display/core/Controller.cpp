@@ -4,6 +4,7 @@
 #include "esp_sntp.h"
 #include <LittleFS.h>
 #include <SD_MMC.h>
+#include <algorithm>
 #include <cmath>
 #include <ctime>
 #include <display/config.h>
@@ -260,14 +261,13 @@ void Controller::setupBluetooth() {
     comms.onSensorData([this](float temp, float pressure, float puckFlow, float pumpFlow, float puckResistance, float pumpPower,
                               float heaterPower, float waterPumped) {
         onTempRead(temp);
-        this->pressure = pressure;
+        onPressureRead(pressure);
         this->currentPuckFlow = puckFlow;
         this->currentPumpFlow = pumpFlow;
         this->currentPumpPower = pumpPower;
         this->currentHeaterPower = heaterPower;
         this->currentPuckResistance = puckResistance;
         this->currentWaterPumped = waterPumped;
-        pluginManager->trigger("boiler:pressure:change", "value", pressure);
         pluginManager->trigger("pump:puck-flow:change", "value", puckFlow);
         pluginManager->trigger("pump:flow:change", "value", pumpFlow);
         pluginManager->trigger("pump:puck-resistance:change", "value", puckResistance);
@@ -978,7 +978,8 @@ void Controller::updateControl() {
                 const bool pressureTarget = brewProcess->getPumpTarget() == PumpTarget::PUMP_TARGET_PRESSURE;
                 relay.open = brewProcess->isRelayActive();
                 pump.mode = pressureTarget ? PumpControlMode::Pressure : PumpControlMode::Flow;
-                pump.pressure = brewProcess->getPumpPressure();
+                // Mushroom-valve machines lose the cracking pressure before the puck; command the sensor-side value
+                pump.pressure = brewProcess->getPumpPressure() + settings.getPressureOffset();
                 pump.flow = brewProcess->getPumpFlow();
                 targetPressure = brewProcess->getPumpPressure();
                 targetFlow = brewProcess->getPumpFlow();
@@ -1163,6 +1164,11 @@ bool Controller::isGrindActive() const {
     return currentProcess != nullptr && currentProcess->isActive() && currentProcess->getType() == MODE_GRIND;
 }
 
+bool Controller::isBrewActive() const {
+    std::lock_guard<std::recursive_mutex> guard(processMutex);
+    return currentProcess != nullptr && currentProcess->isActive() && currentProcess->getType() == MODE_BREW;
+}
+
 int Controller::getMode() const { return mode; }
 
 void Controller::setMode(int newMode) {
@@ -1182,6 +1188,15 @@ void Controller::onTempRead(float temperature) {
     float temp = temperature - static_cast<float>(settings.getTemperatureOffset());
     Event event = pluginManager->trigger("boiler:currentTemperature:change", "value", temp);
     currentTemp = event.getFloat("value");
+}
+
+void Controller::onPressureRead(float pressure) {
+    float p = pressure;
+    // Only a running brew opens the grouphead valve, so only then does the mushroom valve eat its cracking pressure
+    if (isBrewActive())
+        p = std::max(0.0f, p - settings.getPressureOffset());
+    Event event = pluginManager->trigger("boiler:pressure:change", "value", p);
+    this->pressure = event.getFloat("value");
 }
 
 void Controller::updateLastAction() { lastAction = millis(); }

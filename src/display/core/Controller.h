@@ -58,6 +58,7 @@ class Controller {
     virtual float getCurrentTemp() const { return currentTemp; }
     bool isActive() const;
     bool isGrindActive() const;
+    bool isBrewActive() const;
     bool isUpdating() const;
     bool isAutotuning() const;
     bool isReady() const;
@@ -169,6 +170,7 @@ class Controller {
 
     // Event handlers
     void onTempRead(float temperature);
+    void onPressureRead(float pressure);
 
     void handleBrewButton(int brewButtonStatus);
     void handleSteamButton(int steamButtonStatus);

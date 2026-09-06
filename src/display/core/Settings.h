@@ -77,6 +77,7 @@ class Settings {
     int getTargetSteamTemp() const { return targetSteamTemp.get(); }
     int getTargetWaterTemp() const { return targetWaterTemp.get(); }
     int getTemperatureOffset() const { return temperatureOffset.get(); }
+    float getPressureOffset() const { return pressureOffset.get(); }
     float getPressureScaling() const { return pressureScaling.get(); }
     double getTargetGrindVolume() const { return targetGrindVolume.get(); }
     int getTargetGrindDuration() const { return targetGrindDuration.get(); }
@@ -170,6 +171,7 @@ class Settings {
     void setTargetSteamTemp(int target_steam_temp);
     void setTargetWaterTemp(int target_water_temp);
     void setTemperatureOffset(int temperature_offset);
+    void setPressureOffset(float pressure_offset);
     void setPressureScaling(float pressure_scaling);
     void setTargetGrindVolume(double target_grind_volume);
     void setTargetGrindDuration(int target_duration);
@@ -259,6 +261,7 @@ class Settings {
     Property<int> targetSteamTemp{registry, "ts", 145};
     Property<int> targetWaterTemp{registry, "tw", 80};
     Property<int> temperatureOffset{registry, "to", DEFAULT_TEMPERATURE_OFFSET};
+    Property<float> pressureOffset{registry, "poff", DEFAULT_PRESSURE_OFFSET};
     Property<float> pressureScaling{registry, "ps", DEFAULT_PRESSURE_SCALING};
     Property<double> targetGrindVolume{registry, "tgv", 18.0};
     Property<int> targetGrindDuration{registry, "tgd", 25000};

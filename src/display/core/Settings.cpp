@@ -97,6 +97,8 @@ void Settings::setTargetWaterTemp(const int target_water_temp) { targetWaterTemp
 
 void Settings::setTemperatureOffset(const int temperature_offset) { temperatureOffset.set(temperature_offset); }
 
+void Settings::setPressureOffset(const float pressure_offset) { pressureOffset.set(pressure_offset); }
+
 void Settings::setPressureScaling(const float pressure_scaling) { pressureScaling.set(pressure_scaling); }
 
 void Settings::setTargetGrindVolume(double target_grind_volume) { targetGrindVolume.set(target_grind_volume); }
